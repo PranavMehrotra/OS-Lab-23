@@ -1,12 +1,9 @@
-rev $1 >> "a.txt"
+rev $1>>"b.txt"
 
-lcm=$(gawk -M '{
-            if (NR == 1) lcm = $1; 
-            else lcm = (lcm * $1) / gcd(lcm, $1); 
-        } 
-        
-        function gcd(a, b) { return (b == 0) ? a : gcd(b, a % b); } 
-        END { print lcm; }' "a.txt")
+echo $(gawk '{
+            if (NR==1)lcm=$1; 
+            else lcm=(lcm*$1)/gcd(lcm,$1); 
+        }function gcd(a,b){return(b == 0)?a:gcd(b,a%b);} 
+        END{print lcm;}' "b.txt")|bc
 
-echo  $lcm|bc 
-echo  "\n"
+
