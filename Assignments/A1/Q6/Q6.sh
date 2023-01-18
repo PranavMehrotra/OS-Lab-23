@@ -1,5 +1,5 @@
-n=1000
-primes=($(seq 2 $n))
+n=100
+primes=($(seq 0 $n))
 for((i=2;((i*i))<=n;i++));do
     if((${primes[i]}!=-1));then
         for((j=((i*i));j<=n;j+=i));do
@@ -14,5 +14,5 @@ while read line;do
             echo -n $i "";
         fi
     done
-    echo ""
-done <"in.txt" >"output.txt"
+    echo "";
+done <"input.txt" >"output.txt"
