@@ -3,104 +3,92 @@
 #include <string.h>
 
 char ***parse_line(char *line) {
-    int i, j, k;
-    int len = strlen(line);
-    int in_single_quote = 0, in_double_quote = 0, backslash = 0;
-    int num_pipes = 0, num_args = 0;
-    int start, end,tem_start;
+    int i,j,k,len = strlen(line);
+    int inside_single_quotes=0,inside_double_quotes=0,escape_char=0;
+    int pipes_count=0,arg_count=0,start=0, end=0,tem_start;
     char ***commands;
 
-    // Count the number of pipes in the line
-    for (i = 0; i < len; i++) {
-        if (line[i] == '\'' && !in_double_quote && !backslash)
-            in_single_quote = !in_single_quote;
-        else if (line[i] == '\"' && !in_single_quote && !backslash)
-            in_double_quote = !in_double_quote;
-        else if (line[i] == '\\' && !backslash)
-            backslash = 1;
-        else if (line[i] == '|' && !in_single_quote && !in_double_quote && !backslash)
-            num_pipes++;
+    for(i=0;i<len;i++){
+        if (line[i] == '\'' && !inside_double_quotes && !escape_char)
+            inside_single_quotes = !inside_single_quotes;
+        else if (line[i] == '\"' && !inside_single_quotes && !escape_char)
+            inside_double_quotes = !inside_double_quotes;
+        else if (line[i] == '\\' && !escape_char)
+            escape_char = 1;
+        else if (line[i] == '|' && !inside_single_quotes && !inside_double_quotes && !escape_char)
+            pipes_count++;
         else
-            backslash = 0;
+            escape_char = 0;
     }
 
-    // Allocate memory for the commands array
-    commands = (char ***) malloc((num_pipes + 2) * sizeof(char **));
-    commands[num_pipes+1] = NULL;
-    // Split the line by pipes
-    start = 0;
-    end = 0;
-    for (i = 0; i <= num_pipes; i++) {
-        // Find the end of the current command
-        in_single_quote = 0, in_double_quote = 0, backslash = 0;
-        num_args = 0;
+    commands = (char ***) malloc((pipes_count + 2) * sizeof(char **));
+    commands[pipes_count+1] = NULL;
+    for(i=0;i<=pipes_count;i++){
+        inside_single_quotes = 0;
+        inside_double_quotes = 0;
+        escape_char = 0;
+        arg_count = 0;
         for (end = start; end < len; end++) {
-            if (line[end] == '\'' && !in_double_quote && !backslash)
-                in_single_quote = !in_single_quote;
-            else if (line[end] == '\"' && !in_single_quote && !backslash)
-                in_double_quote = !in_double_quote;
-            else if (line[end] == '\\' && !backslash)
-                backslash = 1;
-            else if (line[end] == '|' && !in_single_quote && !in_double_quote && !backslash)
+            if (line[end] == '\'' && !inside_double_quotes && !escape_char)
+                inside_single_quotes = !inside_single_quotes;
+            else if (line[end] == '\"' && !inside_single_quotes && !escape_char)
+                inside_double_quotes = !inside_double_quotes;
+            else if (line[end] == '\\' && !escape_char)
+                escape_char = 1;
+            else if (line[end] == '|' && !inside_single_quotes && !inside_double_quotes && !escape_char)
                 break;
             else
-                backslash = 0;
+                escape_char = 0;
         }
         if(line[start]==' ')    start++;
         tem_start = start;
-        // Count the number of arguments in the current command
         for (j = start; j < end; j++) {
-            if (line[j] == '\'' && !in_double_quote && !backslash)
-                in_single_quote = !in_single_quote;
-            else if (line[j] == '\"' && !in_single_quote && !backslash)
-                in_double_quote = !in_double_quote;
-            else if (line[j] == '\\' && !backslash)
-                backslash = 1;
-            else if (line[j] == ' ' && !in_single_quote && !in_double_quote && !backslash)
-                num_args++;
+            if (line[j] == '\'' && !inside_double_quotes && !escape_char)
+                inside_single_quotes = !inside_single_quotes;
+            else if (line[j] == '\"' && !inside_single_quotes && !escape_char)
+                inside_double_quotes = !inside_double_quotes;
+            else if (line[j] == '\\' && !escape_char)
+                escape_char = 1;
+            else if (line[j] == ' ' && !inside_single_quotes && !inside_double_quotes && !escape_char)
+                arg_count++;
             else
-                backslash = 0;
+                escape_char = 0;
         }
         if(line[j-1]!=' ')
-            num_args++;
-        // Allocate memory for the argument array for the current command
-        commands[i] = (char **) malloc((num_args + 1) * sizeof(char *));
+            arg_count++;
+        commands[i] = (char **) malloc((arg_count + 1) * sizeof(char *));
 
-        // Split the current command into its individual arguments and flags
         start = tem_start;
-        in_single_quote = 0, in_double_quote = 0, backslash = 0;
         j = start;
-        for (k = 0; k < num_args; k++) {
-            // Find the end of the current argument
-            for (; j < end; j++) {
-                if (line[j] == '\'' && !in_double_quote && !backslash)
-                    in_single_quote = !in_single_quote;
-                else if (line[j] == '\"' && !in_single_quote && !backslash)
-                    in_double_quote = !in_double_quote;
-                else if (line[j] == '\\' && !backslash)
-                    backslash = 1;
-                else if (line[j] == ' ' && !in_single_quote && !in_double_quote && !backslash)
+        inside_single_quotes = 0;
+        inside_double_quotes = 0;
+        escape_char = 0;
+        for (k = 0; k < arg_count; k++) {
+            while(j<end){
+                if (line[j] == '\'' && !inside_double_quotes && !escape_char)
+                    inside_single_quotes = !inside_single_quotes;
+                else if (line[j] == '\"' && !inside_single_quotes && !escape_char)
+                    inside_double_quotes = !inside_double_quotes;
+                else if (line[j] == '\\' && !escape_char)
+                    escape_char = 1;
+                else if (line[j] == ' ' && !inside_single_quotes && !inside_double_quotes && !escape_char)
                     break;
                 else
-                    backslash = 0;
+                    escape_char = 0;
+                j++;
             }
 
-            // Allocate memory for the current argument
             commands[i][k] = (char *) malloc((j - start + 1) * sizeof(char));
 
-            // Copy the current argument into the argument array
             strncpy(commands[i][k], line + start, j - start);
             commands[i][k][j - start] = '\0';
 
-            // Move on to the next argument
             start = j + 1;
             j = start;
         }
 
-        // Add a NULL entry at the end of the argument array
-        commands[i][num_args] = NULL;
+        commands[i][arg_count] = NULL;
 
-        // Move on to the next command
         start = end + 1;
         end = start;
     }
@@ -108,14 +96,34 @@ char ***parse_line(char *line) {
     return commands;
 }
 
+// Change it to not remove spaces between single quotes and double quotes
+void remove_spaces(char *a){
+	int i=0,j=0,k=strlen(a),f=1;
+	if(k==0)	return;
+	char b[k+1];
+	while(a[i]!='\0'){
+		if(a[i++]==' ' && f)	continue;
+        b[j++] = a[i-1];
+		if(a[i-1]==' ')    f=1;
+        else f=0;
+	}
+    if(b[j-1]==' ') b[j-1]='\0';
+	else b[j] = '\0';
+	strcpy(a,b);
+	a = realloc(a,strlen(a));
+}
+
 int main(){
-    char *line = "ls -l | grep 'hello world' | wc -l";
+    char *line = malloc(1000 * sizeof(char)); 
+    strcpy(line,"ls -l|grep 'hello world'|wc -l -c");
+    
+    remove_spaces(line);
     char ***commands = parse_line(line);
     int i, j;
 
     for (i = 0; commands[i] != NULL; i++) {
         for (j = 0; commands[i][j] != NULL; j++)
             printf("%s ", commands[i][j]);
-        printf("\n");
+        printf("\nNumber of arguments = %d\n\n",j);
     }
 }
