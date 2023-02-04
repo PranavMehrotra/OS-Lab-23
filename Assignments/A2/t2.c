@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_LINE_LEN 1024
+
 char ***parse_line(char *line) {
     int i,j,k,len = strlen(line);
     int inside_single_quotes=0,inside_double_quotes=0,escape_char=0;
@@ -97,26 +99,42 @@ char ***parse_line(char *line) {
 }
 
 // Change it to not remove spaces between single quotes and double quotes
-void remove_spaces(char *a){
-	int i=0,j=0,k=strlen(a),f=1;
+void remove_spaces(char *line){
+	int i=0,j=0,k=strlen(line),f=1;
 	if(k==0)	return;
+    int inside_single_quotes=0,inside_double_quotes=0,escape_char=0;
 	char b[k+1];
-	while(a[i]!='\0'){
-		if(a[i++]==' ' && f)	continue;
-        b[j++] = a[i-1];
-		if(a[i-1]==' ')    f=1;
+	while(line[i]!='\0'){
+        if (line[i] == '\'' && !inside_double_quotes && !escape_char)
+            inside_single_quotes = !inside_single_quotes;
+        else if (line[i] == '\"' && !inside_single_quotes && !escape_char)
+            inside_double_quotes = !inside_double_quotes;
+        else if (line[i] == '\\' && !escape_char)
+            escape_char = 1;
+        else if (line[i] == ' ' && !inside_single_quotes && !inside_double_quotes && !escape_char && f)
+        {
+            i++;
+            continue;
+        }
+        else
+            escape_char = 0;
+        b[j++] = line[i];
+		if(line[i]==' ')    f=1;
         else f=0;
+        i++;
 	}
     if(b[j-1]==' ') b[j-1]='\0';
 	else b[j] = '\0';
-	strcpy(a,b);
-	a = realloc(a,strlen(a));
+	strcpy(line,b);
+	line = realloc(line,strlen(line));
 }
 
 int main(){
-    char *line = malloc(1000 * sizeof(char)); 
-    strcpy(line,"ls -l|grep 'hello world'|wc -l -c");
-    
+    char *line = malloc(MAX_LINE_LEN * sizeof(char)); 
+    // strcpy(line,"ls -l|grep 'hello     world'|wc -l -c");
+    int max_line_len = MAX_LINE_LEN;
+    printf("Enter the command: ");
+    getline(&line, &max_line_len, stdin);
     remove_spaces(line);
     char ***commands = parse_line(line);
     int i, j;
