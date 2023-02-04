@@ -1,0 +1,63 @@
+// changed code to C format
+
+struct process{
+    char* args[256] = {NULL};   // array of args, allowing atmost 256
+    int n_args = 0;             // store the number of args in the process
+}
+
+struct Node* fg_procs = NULL;          // AVL tree of foreground processes
+
+main(){
+    while(1){
+        char * line = getline();                // scan the whole line
+        process* job = NULL;
+        int n_proc;
+        int background = 0;
+        int success1 = parse(line , &job , &n_proc , &background);       // split it into processes and store in an array. Also store the number of processes
+        int success2 = exec_job(job , n_proc , background);           // execute the whole job
+    }
+}
+
+void parse(char * line , process ** job , int * n_proc , int * background){
+    // take a line (simple char *)
+    // split it at the pipes
+    // each pipe separated char * will be a process
+    // so create an instance of struct process for each one and also parse (simply split at spaces) it and store the arguments in process.args
+    // job points to the start address of these processes
+    // also check for & symbol, if present then each process in this job runs in the background
+    // also store number of processes (number of pipes+1) in n_proc
+}
+
+void exec_job(process * job , int n_proc , int background){
+    // setup the pipes between processes. handle case if no pipes found. call exec_proc on each process.
+    loop(processes){
+        // setup pipe , infd , outfd
+        exec_proc(&process , infd , outfd , background);
+    }
+    
+    if(background) wait()  // parent process    ## IMPROVE LATER. for now, just do it in a while loop and decrement the count each time a process finishes. break loop when 0
+}
+
+void exec_proc(process * p , infd , outfd , int background){
+    // execute the process, where the input and output file descriptors are given
+    cpid = fork();
+
+    if(cpid == 0){      // child process
+        struct Node* new_proc_node = newNode(getpid());
+        if(!background) insertNode(fg_procs , new_proc_node);           // create and insert the node in the AVL tree ONLY IF foreground -- V.IMP
+        char ** args = redirect(p , infd , outfd);    // get the args to pass to the final execvp() call
+        // NULL already added to the end by redirect. simply execute
+        execvp(args[0] , args);
+    }
+}
+
+char ** redirect(process * p , infd , outfd){       // DO add extra NULL at the end
+    // first, redirect to infd and outfd unconditionally
+    // then loop over the arguments of the given process to find any < or > symbols
+    // if found, again dup2 the stdout and stdin to the file names, after opening and closing them appropriately
+    // return the final arguments after stripping off <,>
+}
+
+// Add signal handling
+// Currently, the shell simply exits if there is an error anywhere, but this must change later
+// also, only processes cannot be sent to background using Ctrl+Z currently. Processes are in background only if started with an & symbol
