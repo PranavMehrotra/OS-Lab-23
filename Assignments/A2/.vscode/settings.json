@@ -2,6 +2,10 @@
     "files.associations": {
         "process.h": "c",
         "wait.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "string": "cpp",
+        "*.tcc": "cpp",
+        "iostream": "cpp"
     }
 }

@@ -1,18 +1,18 @@
 #ifndef _PROCESS_H
 #define _PROCESS_H
-#define MAX_ARGS 256
+// #define MAX_ARGS 256
 
-struct process{
-    char * args[MAX_ARGS];
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+typedef struct{
+    char ** args;
     int n_args;
-};
+}process;
 
-void init_proc(struct process * p){     // initialize process structure content
-    for(int i=0;i<MAX_ARGS;i++){
-        p->args[i] = NULL;
-    }
-    p->n_args = 0;
-    return;
-}
+// void init_proc(process * p);
 
 #endif
